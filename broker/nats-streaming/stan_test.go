@@ -13,6 +13,7 @@ import (
 	"github.com/micro/go-micro/codec/proto"
 	stand "github.com/nats-io/nats-streaming-server/server"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/stan.go"
 )
 
 var addrTestCases = []struct {
@@ -187,7 +188,13 @@ func TestBroker(t *testing.T) {
 	}
 	defer ss.Shutdown()
 
-	b := NewBroker()
+	// Force error with wrong clusterId
+	b := NewBroker(ClusterId("noop"))
+	if err := b.Connect(); err != stan.ErrConnectReqTimeout {
+		t.Fatal("connection should fails")
+	}
+
+	b = NewBroker()
 	if err := b.Connect(); err != nil {
 		t.Fatal(err)
 	}
