@@ -35,7 +35,7 @@ func Options(opts ...stan.Option) broker.Option {
 }
 
 // SubscriptionOption accepts stan.SubscriptionOption
-func SubscriptionOption(opts ...stan.SubscriptionOption) broker.SubscribeOption {
+func SubscriptionOptions(opts ...stan.SubscriptionOption) broker.SubscribeOption {
 	return setSubscribeOption(subscriptionOptionsKey{}, opts)
 }
 
@@ -59,7 +59,7 @@ func DurableName(name string) broker.SubscribeOption {
 	return setSubscribeOption(durableName{}, name)
 }
 
-func parseSubscriptionOption(o broker.Options) (opts []stan.SubscriptionOption) {
+func parseSubscriptionOption(o broker.SubscribeOptions) (opts []stan.SubscriptionOption) {
 	if o.Context == nil {
 		return opts
 	}

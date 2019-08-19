@@ -211,7 +211,7 @@ func (n *nbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		}
 	}
 
-	sopts := parseSubscriptionOption(n.opts)
+	sopts := parseSubscriptionOption(opt)
 
 	var sub stan.Subscription
 	var err error
