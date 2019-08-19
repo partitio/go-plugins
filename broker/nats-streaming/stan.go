@@ -230,7 +230,7 @@ func (n *nbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 }
 
 func (n *nbroker) String() string {
-	return "nats"
+	return "nats-streaming"
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {
@@ -259,7 +259,7 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 	}
 
 	var drain bool
-	if _, ok := options.Context.Value(drainSubscriptionKey{}).(bool); ok {
+	if _, ok := options.Context.Value(drainConnectionKey{}).(bool); ok {
 		drain = true
 	}
 

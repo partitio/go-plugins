@@ -1,11 +1,16 @@
 package stan
 
 import (
+	"context"
 	"fmt"
+	"reflect"
+	"sync"
 	"testing"
 
 	"github.com/micro/go-micro/broker"
-	nats "github.com/nats-io/nats.go"
+	"github.com/micro/go-micro/codec/json"
+	"github.com/micro/go-micro/codec/proto"
+	"github.com/nats-io/nats.go"
 )
 
 var addrTestCases = []struct {
@@ -96,4 +101,84 @@ func TestInitAddrs(t *testing.T) {
 		})
 
 	}
+}
+
+func TestNewBroker(t *testing.T) {
+	// default client use uuid ... so we have to cheat ..
+	defaultClientId = "micro-client"
+	type args struct {
+		opts []broker.Option
+	}
+	tests := []struct {
+		name string
+		args args
+		want broker.Broker
+	}{
+		{
+			name: "default",
+			args: args{
+				opts: nil,
+			},
+			want: &nbroker{
+				RWMutex:   sync.RWMutex{},
+				clusterId: DefaultClusterId,
+				clientId:  defaultClientId,
+				addrs:     []string{nats.DefaultURL},
+				conn:      nil,
+				nconn:     nil,
+				opts: broker.Options{
+					Codec:   json.Marshaler{},
+					Context: context.Background(),
+				},
+				nopts: nats.GetDefaultOptions(),
+				drain: false,
+			},
+		},
+		{
+			name: "default",
+			args: args{
+				opts: []broker.Option{
+					broker.Addrs("nats://nats:4222"),
+					broker.Codec(proto.Marshaler{}),
+					ClusterId("micro-cluster"),
+					DrainConnection(),
+				},
+			},
+			want: &nbroker{
+				RWMutex:   sync.RWMutex{},
+				clusterId: "micro-cluster",
+				clientId:  defaultClientId,
+				addrs:     []string{"nats://nats:4222"},
+				conn:      nil,
+				nconn:     nil,
+				opts: broker.Options{
+					Addrs: []string{"nats://nats:4222"},
+					Codec: proto.Marshaler{},
+					Context: ctxWithKVPairs(
+						clusterIdKey{}, "micro-cluster",
+						drainConnectionKey{}, true,
+					),
+				},
+				nopts: nats.GetDefaultOptions(),
+				drain: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewBroker(tt.args.opts...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewBroker() = %v, want %v", got, tt.want)
+			}
+			// got := NewBroker(tt.args.opts...)
+			// assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func ctxWithKVPairs(kv ...interface{}) context.Context {
+	ctx := context.Background()
+	for i := 0; i < len(kv); i += 2 {
+		ctx = context.WithValue(ctx, kv[i], kv[i+1])
+	}
+	return ctx
 }
