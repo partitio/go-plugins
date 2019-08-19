@@ -6,10 +6,12 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-micro/codec/json"
 	"github.com/micro/go-micro/codec/proto"
+	stand "github.com/nats-io/nats-streaming-server/server"
 	"github.com/nats-io/nats.go"
 )
 
@@ -172,6 +174,62 @@ func TestNewBroker(t *testing.T) {
 			// got := NewBroker(tt.args.opts...)
 			// assert.Equal(t, tt.want, got)
 		})
+	}
+}
+
+func TestBroker(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ss, err := stand.Run(nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ss.Shutdown()
+
+	b := NewBroker()
+	if err := b.Connect(); err != nil {
+		t.Fatal(err)
+	}
+
+	topic := "test"
+	message := "whatever"
+
+	received := make(chan struct{})
+	s, err := b.Subscribe(topic, func(event broker.Event) error {
+		got := string(event.Message().Body)
+		if event.Topic() != topic {
+			t.Errorf("expected topic to be: %s, got: %s", topic, event.Topic())
+		}
+		if len(event.Message().Header) != 0 {
+			t.Errorf("expected no headers, got: %v", event.Message().Header)
+		}
+		if got != message {
+			t.Errorf("got: %s, expected to have: %s", got, message)
+		}
+		close(received)
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := b.Publish(topic, &broker.Message{
+		Header: nil,
+		Body:   []byte(message),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case <-received:
+	}
+
+	if err := s.Unsubscribe(); err != nil {
+		t.Fatal(err)
+	}
+	if err := b.Disconnect(); err != nil {
+		t.Fatal(err)
 	}
 }
 

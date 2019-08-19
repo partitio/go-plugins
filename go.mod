@@ -64,7 +64,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/nats-io/jwt v0.2.12 // indirect
 	github.com/nats-io/nats-server/v2 v2.0.2 // indirect
-	github.com/nats-io/nats-streaming-server v0.15.1 // indirect
+	github.com/nats-io/nats-streaming-server v0.15.1
 	github.com/nats-io/nats.go v1.8.1
 	github.com/nats-io/stan.go v0.5.0
 	github.com/nsqio/go-nsq v1.0.7
@@ -84,6 +84,7 @@ require (
 	github.com/sony/gobreaker v0.4.1
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
+	github.com/stretchr/testify v1.3.0
 	github.com/tinylib/msgp v1.1.0
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
