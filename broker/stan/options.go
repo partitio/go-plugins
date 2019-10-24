@@ -40,6 +40,11 @@ func ServerSubscriberOption(opts ...stan.SubscriptionOption) server.SubscriberOp
 	return setServerSubscriberOption(subscribeOptionKey{}, opts)
 }
 
+// AckOnSuccess will automatically acknowledge messages when no error is returned
+func ServerAckOnSuccess() server.SubscriberOption {
+	return setServerSubscriberOption(ackSuccessKey{}, true)
+}
+
 type subscribeContextKey struct{}
 
 // SubscribeContext set the context for broker.SubscribeOption
